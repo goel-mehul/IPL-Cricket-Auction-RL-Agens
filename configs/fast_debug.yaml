@@ -1,0 +1,49 @@
+# Inherits default — overrides for fast local debugging
+env:
+  num_teams: 10
+  budget_cr: 100
+  max_squad_size: 19
+  min_squad_size: 15
+  max_overseas: 5
+  auction_timer_steps: 8
+  unsold_price_factor: 0.5
+
+training:
+  total_episodes: 500
+  num_envs: 1
+  rollout_steps: 128
+  ppo_epochs: 2
+  minibatch_size: 32
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.01
+  max_grad_norm: 0.5
+  lr: 3.0e-4
+  lr_decay: false
+  value_normalize: true
+
+network:
+  obs_dim: 65
+  global_state_dim: 200
+  hidden_dim: 64
+  num_layers: 2
+  activation: tanh
+  use_orthogonal_init: true
+  parameter_sharing: true
+
+reward:
+  final_score_weight: 1.0
+  completeness_bonus: 0.3
+  budget_waste_penalty: 0.05
+  overseas_bonus: 0.1
+
+logging:
+  log_interval: 50
+  save_interval: 200
+  eval_interval: 200
+  eval_episodes: 10
+  use_wandb: false
+  wandb_project: ipl-auction-rl
+  results_dir: results

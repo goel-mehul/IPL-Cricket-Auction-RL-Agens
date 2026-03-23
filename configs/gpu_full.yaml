@@ -1,0 +1,49 @@
+# NYU Greene GPU config — A100, 12-24hr job
+env:
+  num_teams: 10
+  budget_cr: 100
+  max_squad_size: 19
+  min_squad_size: 15
+  max_overseas: 5
+  auction_timer_steps: 8
+  unsold_price_factor: 0.5
+
+training:
+  total_episodes: 1000000
+  num_envs: 32              # vectorized envs, fully parallelized on CPU cores
+  rollout_steps: 512
+  ppo_epochs: 10
+  minibatch_size: 256
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  value_coef: 0.5
+  entropy_coef: 0.005       # lower entropy for longer training
+  max_grad_norm: 0.5
+  lr: 3.0e-4
+  lr_decay: true
+  value_normalize: true
+
+network:
+  obs_dim: 65
+  global_state_dim: 200
+  hidden_dim: 256           # larger network for full training
+  num_layers: 3
+  activation: tanh
+  use_orthogonal_init: true
+  parameter_sharing: true
+
+reward:
+  final_score_weight: 1.0
+  completeness_bonus: 0.3
+  budget_waste_penalty: 0.05
+  overseas_bonus: 0.1
+
+logging:
+  log_interval: 500
+  save_interval: 10000
+  eval_interval: 20000
+  eval_episodes: 200
+  use_wandb: true
+  wandb_project: ipl-auction-rl
+  results_dir: results
