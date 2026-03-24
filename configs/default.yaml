@@ -28,7 +28,7 @@ training:
 # ── Network ───────────────────────────────────────────────────────
 network:
   obs_dim: 65                 # per-agent observation size
-  global_state_dim: 200       # centralized critic input
+  global_state_dim: 650       # centralized critic input
   hidden_dim: 128
   num_layers: 2
   activation: tanh

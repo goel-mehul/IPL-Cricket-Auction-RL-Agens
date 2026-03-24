@@ -26,7 +26,7 @@ training:
 
 network:
   obs_dim: 65
-  global_state_dim: 200
+  global_state_dim: 650
   hidden_dim: 256           # larger network for full training
   num_layers: 3
   activation: tanh
