@@ -124,16 +124,41 @@ class MAPPOTrainer:
         self.best_score   = -float("inf")
         self.score_history= []
 
+        # ── Parallel env setup ────────────────────────────────────
+        self.num_envs = tc.get("num_envs", 1)
+        if self.num_envs > 1:
+            from training.vec_env import VecEnv
+            self.vec_env = VecEnv(num_envs=self.num_envs, seed=0)
+            print(f"  Parallel envs:   {self.num_envs}")
+        else:
+            self.vec_env = None
+
         # Hyperparams shortcut
         self.tc = tc
         self.lc = log_cfg
 
     # ── Rollout collection ─────────────────────────────────────────
 
+    def _make_action_fn(self):
+        """Creates a picklable action function for parallel workers."""
+        # We can't pickle the MAPPOAgent directly (has MPS/CUDA tensors)
+        # So we move weights to CPU, extract as numpy, and rebuild in worker
+        # For simplicity: use the agent on main process for inference,
+        # and only parallelize the environment stepping
+        agent = self.agent
+        agent.eval()
+
+        def action_fn(obs, global_state):
+            action, log_prob = agent.get_action(obs)
+            value            = agent.get_value(global_state)
+            return action, log_prob, value
+
+        return action_fn
+
     def collect_rollout(self, n_episodes: int = 1) -> dict:
         """
-        Run n_episodes, store (obs, action, reward, ...) in buffer.
-        Returns episode stats.
+        Run n_episodes, store transitions in buffer.
+        Uses parallel envs if num_envs > 1.
         """
         self.buffer.reset_all()
         self.agent.eval()
@@ -142,11 +167,60 @@ class MAPPOTrainer:
         ep_steps   = []
         ep_rewards = defaultdict(list)
 
+        if self.num_envs > 1 and self.vec_env is not None:
+            return self._collect_parallel(n_episodes, ep_scores, ep_steps, ep_rewards)
+
+        return self._collect_sequential(n_episodes, ep_scores, ep_steps, ep_rewards)
+
+    def _collect_parallel(self, n_episodes, ep_scores, ep_steps, ep_rewards):
+        """Parallel rollout using multiprocessing."""
+        from training.vec_env import _run_single_episode
+        import multiprocessing as mp
+        import functools
+
+        # Move agent to CPU for pickling to workers
+        self.agent.to("cpu")
+        action_fn = self._make_action_fn()
+
+        seeds = list(range(self.episode, self.episode + n_episodes))
+        n_workers = min(self.num_envs, n_episodes, mp.cpu_count())
+
+        with mp.Pool(processes=n_workers) as pool:
+            worker_fn = functools.partial(_run_single_episode, get_action_fn=action_fn)
+            results   = pool.map(worker_fn, seeds)
+
+        # Move agent back to original device
+        self.agent.to(self.device)
+        self.agent.train()
+
+        # Load results into buffer
+        for result in results:
+            for team_id in ALL_TEAM_IDS:
+                for t in result["step_data"][team_id]:
+                    self.buffer.add(
+                        team_id,
+                        t["obs"], t["global_state"],
+                        t["action"], t["reward"],
+                        t["done"], t["log_prob"], t["value"],
+                    )
+            if result["scores"]:
+                ep_scores.append(result["mean_score"])
+            ep_steps.append(result["steps"])
+            self.episode    += 1
+            self.total_steps += result["steps"]
+
+        return {
+            "mean_score":  float(np.mean(ep_scores)) if ep_scores else 0.0,
+            "mean_reward": 0.0,
+            "mean_steps":  float(np.mean(ep_steps)),
+            "buffer_size": self.buffer.total_steps(),
+        }
+
+    def _collect_sequential(self, n_episodes, ep_scores, ep_steps, ep_rewards):
+        """Sequential rollout — one episode at a time."""
         for ep in range(n_episodes):
             obs_dict, _ = self.env.reset(seed=self.episode + ep)
             step = 0
-
-            # Per-step storage — we store transitions as they happen
             step_data = {t: [] for t in ALL_TEAM_IDS}
 
             while self.env.agents and step < 30000:
@@ -154,16 +228,13 @@ class MAPPOTrainer:
                 obs, reward, term, trunc, info = self.env.last()
 
                 if term or trunc:
-                    # Record final reward for this agent
                     if step_data[agent_id]:
-                        # Mark last transition as terminal
                         step_data[agent_id][-1]["done"]   = True
                         step_data[agent_id][-1]["reward"] += reward
                     self.env.step(None)
                     step += 1
                     continue
 
-                # Get action from policy
                 global_state = self.env.state()
                 action, log_prob = self.agent.get_action(obs)
                 value            = self.agent.get_value(global_state)
@@ -174,16 +245,14 @@ class MAPPOTrainer:
                     "action":       action,
                     "log_prob":     log_prob,
                     "value":        value,
-                    "reward":       reward,   # 0 until episode ends
+                    "reward":       reward,
                     "done":         False,
                 })
 
                 self.env.step(action)
                 step += 1
 
-            # Episode done — flush step_data to buffer
             scores = self.env.get_final_scores()
-            state  = self.env.get_state_dict()
 
             for team_id in ALL_TEAM_IDS:
                 transitions = step_data[team_id]
@@ -192,8 +261,6 @@ class MAPPOTrainer:
 
                 final_reward = self.env._cumulative_rewards.get(team_id, 0.0)
                 ep_rewards[team_id].append(final_reward)
-
-                # Assign terminal reward to last transition
                 transitions[-1]["reward"] += final_reward
 
                 for t in transitions:
@@ -204,22 +271,21 @@ class MAPPOTrainer:
                         t["done"], t["log_prob"], t["value"],
                     )
 
-            # Episode score (mean across all teams)
             if scores:
                 ep_score = np.mean([s.get("final_score", 0) for s in scores.values()])
                 ep_scores.append(ep_score)
             ep_steps.append(step)
-            self.episode   += 1
+            self.episode    += 1
             self.total_steps += step
 
         self.agent.train()
-
         return {
-            "mean_score":   float(np.mean(ep_scores)) if ep_scores else 0.0,
-            "mean_reward":  float(np.mean([v for vals in ep_rewards.values() for v in vals])),
-            "mean_steps":   float(np.mean(ep_steps)),
-            "buffer_size":  self.buffer.total_steps(),
+            "mean_score":  float(np.mean(ep_scores)) if ep_scores else 0.0,
+            "mean_reward": float(np.mean([v for vals in ep_rewards.values() for v in vals])),
+            "mean_steps":  float(np.mean(ep_steps)),
+            "buffer_size": self.buffer.total_steps(),
         }
+
 
     # ── PPO update ─────────────────────────────────────────────────
 
