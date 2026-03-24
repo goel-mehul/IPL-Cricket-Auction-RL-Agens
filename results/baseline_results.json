@@ -1,0 +1,200 @@
+{
+  "agent": "rule_based",
+  "n_episodes": 100,
+  "n_timeouts": 0,
+  "mean_ep_time_s": 3.825626072883606,
+  "overall_score_mean": 61.331,
+  "overall_score_std": 12.335940945059685,
+  "summary": {
+    "MI": {
+      "final_score_mean": 40.53,
+      "final_score_std": 7.698642737521985,
+      "xi_avg_mean": 83.432,
+      "squad_size_mean": 18.97,
+      "completeness_mean": 45.8,
+      "balance_mean": 11.75,
+      "budget_spent_mean": 52.842,
+      "budget_remain_mean": 4.158,
+      "mins_met_rate": 0.0,
+      "overseas_mean": 2.91,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.0,
+        "B": 0.14,
+        "C": 0.74,
+        "D": 0.12
+      }
+    },
+    "CSK": {
+      "final_score_mean": 63.01,
+      "final_score_std": 2.692563833969401,
+      "xi_avg_mean": 81.68599999999999,
+      "squad_size_mean": 18.87,
+      "completeness_mean": 82.6,
+      "balance_mean": 36.95,
+      "budget_spent_mean": 55.648300000000006,
+      "budget_remain_mean": 1.3517000000000001,
+      "mins_met_rate": 0.13,
+      "overseas_mean": 4.86,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.17,
+        "B": 0.83,
+        "C": 0.0,
+        "D": 0.0
+      }
+    },
+    "RCB": {
+      "final_score_mean": 47.29,
+      "final_score_std": 5.559307510832622,
+      "xi_avg_mean": 82.47200000000001,
+      "squad_size_mean": 16.24,
+      "completeness_mean": 50.0,
+      "balance_mean": 28.96,
+      "budget_spent_mean": 56.9075,
+      "budget_remain_mean": 0.0925,
+      "mins_met_rate": 0.0,
+      "overseas_mean": 3.49,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.0,
+        "B": 0.5,
+        "C": 0.5,
+        "D": 0.0
+      }
+    },
+    "KKR": {
+      "final_score_mean": 67.9,
+      "final_score_std": 5.303772242470447,
+      "xi_avg_mean": 83.236,
+      "squad_size_mean": 16.34,
+      "completeness_mean": 83.4,
+      "balance_mean": 49.52,
+      "budget_spent_mean": 56.92059999999999,
+      "budget_remain_mean": 0.0794,
+      "mins_met_rate": 0.17,
+      "overseas_mean": 4.4,
+      "grade_dist": {
+        "S": 0.06,
+        "A": 0.7,
+        "B": 0.24,
+        "C": 0.0,
+        "D": 0.0
+      }
+    },
+    "DC": {
+      "final_score_mean": 64.44,
+      "final_score_std": 3.9782408172457333,
+      "xi_avg_mean": 82.33300000000001,
+      "squad_size_mean": 16.76,
+      "completeness_mean": 83.6,
+      "balance_mean": 45.16,
+      "budget_spent_mean": 56.82579999999999,
+      "budget_remain_mean": 0.17420000000000002,
+      "mins_met_rate": 0.18,
+      "overseas_mean": 4.26,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.33,
+        "B": 0.67,
+        "C": 0.0,
+        "D": 0.0
+      }
+    },
+    "RR": {
+      "final_score_mean": 75.26,
+      "final_score_std": 6.9463947483568775,
+      "xi_avg_mean": 83.05799999999999,
+      "squad_size_mean": 17.1,
+      "completeness_mean": 92.2,
+      "balance_mean": 70.58,
+      "budget_spent_mean": 67.87930000000001,
+      "budget_remain_mean": 0.1207,
+      "mins_met_rate": 0.61,
+      "overseas_mean": 4.53,
+      "grade_dist": {
+        "S": 0.41,
+        "A": 0.53,
+        "B": 0.06,
+        "C": 0.0,
+        "D": 0.0
+      }
+    },
+    "SRH": {
+      "final_score_mean": 65.2,
+      "final_score_std": 3.0166206257996713,
+      "xi_avg_mean": 83.197,
+      "squad_size_mean": 15.25,
+      "completeness_mean": 80.8,
+      "balance_mean": 44.44,
+      "budget_spent_mean": 56.7161,
+      "budget_remain_mean": 0.2839,
+      "mins_met_rate": 0.05,
+      "overseas_mean": 4.89,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.63,
+        "B": 0.36,
+        "C": 0.01,
+        "D": 0.0
+      }
+    },
+    "PBKS": {
+      "final_score_mean": 49.31,
+      "final_score_std": 5.334219718009373,
+      "xi_avg_mean": 81.815,
+      "squad_size_mean": 14.91,
+      "completeness_mean": 54.6,
+      "balance_mean": 31.63,
+      "budget_spent_mean": 56.9005,
+      "budget_remain_mean": 0.09950000000000003,
+      "mins_met_rate": 0.0,
+      "overseas_mean": 3.53,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.0,
+        "B": 0.62,
+        "C": 0.38,
+        "D": 0.0
+      }
+    },
+    "GT": {
+      "final_score_mean": 72.97,
+      "final_score_std": 7.034848967817291,
+      "xi_avg_mean": 83.98199999999999,
+      "squad_size_mean": 18.29,
+      "completeness_mean": 90.2,
+      "balance_mean": 53.67,
+      "budget_spent_mean": 56.7738,
+      "budget_remain_mean": 0.2262,
+      "mins_met_rate": 0.51,
+      "overseas_mean": 4.79,
+      "grade_dist": {
+        "S": 0.27,
+        "A": 0.66,
+        "B": 0.07,
+        "C": 0.0,
+        "D": 0.0
+      }
+    },
+    "LSG": {
+      "final_score_mean": 67.4,
+      "final_score_std": 5.8154965394194855,
+      "xi_avg_mean": 81.79599999999999,
+      "squad_size_mean": 14.95,
+      "completeness_mean": 90.0,
+      "balance_mean": 53.25,
+      "budget_spent_mean": 56.9234,
+      "budget_remain_mean": 0.0766,
+      "mins_met_rate": 0.5,
+      "overseas_mean": 4.66,
+      "grade_dist": {
+        "S": 0.0,
+        "A": 0.53,
+        "B": 0.47,
+        "C": 0.0,
+        "D": 0.0
+      }
+    }
+  }
+}
