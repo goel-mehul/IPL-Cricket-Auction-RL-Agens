@@ -191,12 +191,13 @@ class IPLAuctionEnv(AECEnv):
             "player_idx":          0,
             "current_bid_cr":      self._current_player(pools, 0, 0)["base_price"] if pools else 0,
             "leading_team":        None,
-            "no_bid_rounds":       0,       # rounds with zero new bids
-            "timer_max":           2,       # hammer after 2 no-bid rounds
-            "had_bid_this_round":  False,   # did anyone bid this round?
+            "no_bid_rounds":       0,
+            "timer_max":           1,       # hammer after 1 no-bid round (faster)
+            "had_bid_this_round":  False,
             "phase":               "auction",
             "unsold_players":      [],
             "pass_flags":          {t: False for t in ALL_TEAM_IDS},
+            "cached_remaining":    None,    # cached role counts, invalidated on player advance
         }
 
         # AEC bookkeeping
@@ -335,10 +336,11 @@ class IPLAuctionEnv(AECEnv):
 
     def _advance_to_next_player(self):
         s = self._state
-        s["player_idx"]       += 1
-        s["leading_team"]      = None
-        s["no_bid_rounds"]     = 0
+        s["player_idx"]        += 1
+        s["leading_team"]       = None
+        s["no_bid_rounds"]      = 0
         s["had_bid_this_round"] = False
+        s["cached_remaining"]   = None  # invalidate cache for new player
 
         pool = s["pools"][s["pool_idx"]] if s["pool_idx"] < len(s["pools"]) else None
         if pool and s["player_idx"] >= len(pool["players"]):
@@ -460,7 +462,12 @@ class IPLAuctionEnv(AECEnv):
         obs[19] = max(0, SQUAD_RULES["max_size"] - len(team["squad"])) / SQUAD_RULES["max_size"]
 
         # ── Role need scores [20-24] ──────────────────────────────
-        remaining = get_remaining_role_counts(s["pools"], s["pool_idx"], s["player_idx"])
+        # Use cached remaining counts (computed once per player, not per agent per step)
+        if s["cached_remaining"] is None:
+            s["cached_remaining"] = get_remaining_role_counts(
+                s["pools"], s["pool_idx"], s["player_idx"]
+            )
+        remaining = s["cached_remaining"]
         for i, r in enumerate(ROLES):
             tmp_player = {"role": r, "nationality": "Indian"}
             obs[20 + i] = get_role_need_score(
